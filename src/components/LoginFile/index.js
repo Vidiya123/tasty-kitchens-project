@@ -104,7 +104,7 @@ class LoginForm extends Component {
             className="login-vector-logo"
           />
           <h1 className="tasty-kitchen-heading">Tasty Kitchens</h1>
-          <p className="login-text">Login</p>
+          <h1 className="login-text">Login</h1>
 
           <form className="form-container" onSubmit={this.submitForm}>
             <div className="input-container">{this.renderUsernameField()}</div>

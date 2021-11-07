@@ -47,8 +47,10 @@ const Cart = props => (
               <div className="dashed-line">.</div>
               <div className="billing-card">
                 <div className="billing">
-                  <h1 className="billing-heading">Order Total :</h1>
-                  <h1 className="billing-heading">₹ {getTotalBill()}.00</h1>
+                  <h1 className="billing-heading">Order Total:</h1>
+                  <p testid="total-price" className="billing-heading">
+                    ₹ {getTotalBill()}.00
+                  </p>
                 </div>
 
                 <button

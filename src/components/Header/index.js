@@ -1,22 +1,20 @@
-import {withRouter} from 'react-router-dom'
-import Navbar from 'react-bootstrap/Navbar'
-import Nav from 'react-bootstrap/Nav'
-import Container from 'react-bootstrap/Container'
+import {Component} from 'react'
+import {Link, withRouter} from 'react-router-dom'
 import Cookies from 'js-cookie'
-
+import {FaBars, FaTimesCircle} from 'react-icons/fa'
 import RestaurantContext from '../../context/RestaurantContext'
-
 import './index.css'
-import 'bootstrap/dist/css/bootstrap.min.css'
 
-const Header = props => {
-  const onLoggedOutClicked = () => {
-    const {history} = props
+class Header extends Component {
+  state = {isClicked: false}
+
+  onClickLogout = () => {
+    const {history} = this.props
     Cookies.remove('jwt_token')
     history.replace('/login')
   }
 
-  const renderCartItemsCount = () => (
+  renderCartItemsCount = () => (
     <RestaurantContext.Consumer>
       {value => {
         const {cartList} = value
@@ -24,39 +22,87 @@ const Header = props => {
       }}
     </RestaurantContext.Consumer>
   )
-  return (
-    <Navbar expand="sm" className="nav-bar-header mb-5" fixed="top">
-      <Container width="100%" bg="secondary">
-        <Navbar.Brand href="/" className="nav-bar-logo-container">
-          <img
-            src="https://i.postimg.cc/XNZMm0J3/Frame-274-1.jpg"
-            alt="website logo"
-            className="nav-bar-logo"
-          />
-          <h1 className="tasty-kitchen-heading">Tasty Kitchens</h1>
-        </Navbar.Brand>
-        <Navbar.Toggle aria-controls="basic-navbar-nav" />
-        <Navbar.Collapse id="basic-navbar-nav">
-          <div className="menu-items-card" bg="light">
-            <Nav className="m-auto">
-              <Nav.Link href="/">Home</Nav.Link>
-              <Nav.Link href="/cart">
-                Cart
-                {renderCartItemsCount()}
-              </Nav.Link>
-              <button
-                onClick={onLoggedOutClicked}
-                className="log-out-button"
-                type="button"
-              >
-                Log Out
-              </button>
-            </Nav>
-          </div>
-        </Navbar.Collapse>
-      </Container>
-    </Navbar>
+
+  renderIconContainer = () => (
+    <Link to="/" className="nav-bar-icon-link" style={{textDecoration: 'none'}}>
+      <div className="nav-bar-icon-container">
+        <img
+          src="https://res.cloudinary.com/dppqkea7f/image/upload/v1625742512/Frame_274_zlrzwk.svg"
+          alt="website logo"
+          className="nav-bar-icon-img"
+        />
+        <h1 className="nav-bar-icon-heading">Tasty Kitchen</h1>
+      </div>
+    </Link>
   )
+
+  renderNavList = () => (
+    <ul className="list-container">
+      <Link to="/" className="nav-link">
+        <li>Home</li>
+      </Link>
+      <Link to="/cart" className="nav-link">
+        <li>Cart {this.renderCartItemsCount()}</li>
+      </Link>
+    </ul>
+  )
+
+  render() {
+    const {isClicked} = this.state
+    return (
+      <>
+        <nav className="nav-bar">
+          <div className="desktop-nav-bar-container">
+            {this.renderIconContainer()}
+            <div className="nav-bar-link-items-container">
+              {this.renderNavList()}
+              <Link to="/login" style={{textDecoration: 'none'}}>
+                <button
+                  className="desktop-logout-btn"
+                  type="button"
+                  onClick={this.onClickLogout}
+                >
+                  Logout
+                </button>
+              </Link>
+            </div>
+          </div>
+          <div className="mobile-nav-bar-container">
+            {this.renderIconContainer()}
+            <button
+              type="button"
+              className="menu-btn"
+              onClick={() => {
+                this.setState({isClicked: !isClicked})
+              }}
+            >
+              <FaBars className="FaBars " />
+            </button>
+          </div>
+        </nav>
+        {isClicked && (
+          <div className="mobile-menu-list">
+            {this.renderNavList()}
+            <Link to="/login" className="nav-link-button">
+              <button
+                className="mobile-logout-btn"
+                type="button"
+                onClick={this.onClickLogout}
+              >
+                Logout
+              </button>
+            </Link>
+            <FaTimesCircle
+              className="mobile-toggle-icon"
+              onClick={() => {
+                this.setState({isClicked: !isClicked})
+              }}
+            />
+          </div>
+        )}
+      </>
+    )
+  }
 }
 
 export default withRouter(Header)

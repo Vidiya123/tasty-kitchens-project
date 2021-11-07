@@ -97,7 +97,7 @@ class App extends Component {
           <ProtectedRoute exact path="/cart" component={Cart} />
           <ProtectedRoute exact path="/payment" component={PaymentPage} />
           <ProtectedRoute exact path="/not-found" component={NotFound} />
-          <Redirect to="/not-found" />
+          <Redirect to="not-found" />
         </Switch>
       </RestaurantContext.Provider>
     )

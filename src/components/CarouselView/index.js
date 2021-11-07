@@ -14,7 +14,7 @@ const carouselStatus = {
 
 class CarouselView extends Component {
   state = {
-    isLoading: carouselStatus.initial,
+    isLoadingCarousal: carouselStatus.initial,
     carouserList: [],
   }
 
@@ -22,12 +22,15 @@ class CarouselView extends Component {
     this.fetchCarouselList()
   }
 
-  onSuccess = data => {
-    this.setState({carouserList: data, isLoading: carouselStatus.success})
+  onSuccessCarousal = data => {
+    this.setState({
+      carouserList: data,
+      isLoadingCarousal: carouselStatus.success,
+    })
   }
 
-  onFail = () => {
-    this.setState({isLoading: carouselStatus.fail})
+  onFailCarousal = () => {
+    this.setState({isLoadingCarousal: carouselStatus.fail})
   }
 
   fetchCarouselList = async () => {
@@ -51,13 +54,13 @@ class CarouselView extends Component {
         imageUrl: item.image_url,
       }))
 
-      this.onSuccess(carouselList)
+      this.onSuccessCarousal(carouselList)
     } else {
-      this.onFail()
+      this.onFailCarousal()
     }
   }
 
-  loaderView = () => (
+  carousalLoaderView = () => (
     <div
       className="products-loader-container"
       testid="restaurants-offers-loader"
@@ -66,7 +69,7 @@ class CarouselView extends Component {
     </div>
   )
 
-  successView = () => {
+  carousalSuccessView = () => {
     const {carouserList} = this.state
     const settings = {
       dots: true,
@@ -80,26 +83,26 @@ class CarouselView extends Component {
     return (
       <Slider {...settings}>
         {carouserList.map(item => (
-          <div key={item.id}>
+          <li key={item.id}>
             <img src={item.imageUrl} alt="offer" className="carousel-image" />
-          </div>
+          </li>
         ))}
       </Slider>
     )
   }
 
-  failedView = () => <h1>Retry</h1>
+  carousalFailedView = () => <h1>Retry</h1>
 
-  getCarouse = () => {
-    const {isLoading} = this.state
+  getCarouselCard = () => {
+    const {isLoadingCarousal} = this.state
 
-    if (isLoading === carouselStatus.initial) {
-      return this.loaderView()
+    if (isLoadingCarousal === carouselStatus.initial) {
+      return this.carousalLoaderView()
     }
-    if (isLoading === carouselStatus.success) {
-      return this.successView()
+    if (isLoadingCarousal === carouselStatus.success) {
+      return this.carousalSuccessView()
     }
-    return this.failedView()
+    return this.carousalFailedView()
   }
 
   render() {
@@ -108,7 +111,7 @@ class CarouselView extends Component {
       return <Redirect to="/login" />
     }
 
-    return <div className="carousel-container">{this.getCarouse()}</div>
+    return <div className="carousel-container">{this.getCarouselCard()}</div>
   }
 }
 

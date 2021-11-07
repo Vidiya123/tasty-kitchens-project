@@ -1,5 +1,4 @@
 import {Component} from 'react'
-
 import {withRouter} from 'react-router-dom'
 import {BsFilterRight, BsFillStarFill} from 'react-icons/bs'
 import {FcSearch} from 'react-icons/fc'
@@ -7,6 +6,7 @@ import {FcSearch} from 'react-icons/fc'
 import Loader from 'react-loader-spinner'
 import Cookies from 'js-cookie'
 import RestaurantContext from '../../context/RestaurantContext'
+import NotFound from '../NotFound'
 import Header from '../Header'
 import Footer from '../Footer'
 import './index.css'
@@ -33,6 +33,7 @@ class DetailedRestaurant extends Component {
   state = {
     isLoading: apiStatus.initial,
     restaurantData: [],
+    foodItemsList: [],
     searchInput: '',
     activeOptionId: sortByOptions[0].value,
   }
@@ -49,8 +50,12 @@ class DetailedRestaurant extends Component {
     this.setState({searchInput: event.target.value}, this.getRestaurantsList)
   }
 
-  onSuccess = data => {
-    this.setState({restaurantData: data, isLoading: apiStatus.success})
+  onSuccess = (data, foodItems) => {
+    this.setState({
+      restaurantData: data,
+      foodItemsList: foodItems,
+      isLoading: apiStatus.success,
+    })
   }
 
   restaurantCard = card => {
@@ -62,8 +67,8 @@ class DetailedRestaurant extends Component {
           <img src={imageUrl} alt={name} className="restaurant-card-image" />
           <div className="restaurant-description-card">
             <h1 className="restaurant-card-heading">{name}</h1>
-            <p className="restaurant-card-food-type">{`${cost}.00`}</p>
-            <div className="rating-card">
+            <p className="restaurant-card-food-type">{cost}.00</p>
+            <div className="rating-card-main">
               <BsFillStarFill className="rating-icon" />
               <p className="rating">{rating}</p>
             </div>
@@ -82,6 +87,7 @@ class DetailedRestaurant extends Component {
       location,
       rating,
       name,
+      cuisine,
       reviewsCount,
     } = restaurantData
     return (
@@ -93,6 +99,7 @@ class DetailedRestaurant extends Component {
         />
         <div className="detailed-restaurant-top-section-data-container">
           <h1 className="detailed-restaurant-top-header">{name}</h1>
+          <p className="separate-restaurant-type">{cuisine}</p>
           <p className="location">{location}</p>
           <div className="card-3">
             <div className="detailed-rating-card-2">
@@ -114,12 +121,11 @@ class DetailedRestaurant extends Component {
   }
 
   successView = () => {
-    const {restaurantData} = this.state
-    const {foodItems} = restaurantData
+    const {foodItemsList} = this.state
 
     return (
       <ul className="restaurant-container">
-        {foodItems.map(card => this.restaurantCard(card))}
+        {foodItemsList.map(card => this.restaurantCard(card))}
       </ul>
     )
   }
@@ -127,23 +133,19 @@ class DetailedRestaurant extends Component {
   getAddOrSubtractCard = id => (
     <RestaurantContext.Consumer>
       {value => {
-        const {restaurantData} = this.state
-        const {foodItems} = restaurantData
-        const currentItemIndex = foodItems.findIndex(item => item.id === id)
+        const {foodItemsList} = this.state
+        const currentItemIndex = foodItemsList.findIndex(item => item.id === id)
 
-        const {quantity, showAddButton} = foodItems[currentItemIndex]
+        const {quantity, showAddButton} = foodItemsList[currentItemIndex]
 
         const addNow = event => {
           const addId = event.target.value
           const {updateCartList, cartList} = value
-          const currentAddItemIndex = foodItems.findIndex(
+          const currentAddItemIndex = foodItemsList.findIndex(
             item => item.id === addId,
           )
-          const CurrentItem = foodItems[currentAddItemIndex]
 
-          delete CurrentItem.showAddButton
-          delete CurrentItem.foodType
-          delete CurrentItem.rating
+          const CurrentItem = foodItemsList[currentAddItemIndex]
 
           const itemAlreadyInCartIndex = cartList.findIndex(
             item => item.id === addId,
@@ -169,43 +171,42 @@ class DetailedRestaurant extends Component {
         const addButtonClicked = event => {
           const addButtonId = event.target.value
 
-          const currentAddButtonIndex = foodItems.findIndex(
+          const currentAddButtonIndex = foodItemsList.findIndex(
             item => item.id === addButtonId,
           )
 
-          foodItems[currentAddButtonIndex].showAddButton = false
-          foodItems[currentAddButtonIndex].quantity += 1
-          restaurantData.foodItems = foodItems
-          this.setState({restaurantData}, addNow(event))
+          foodItemsList[currentAddButtonIndex].showAddButton = false
+          foodItemsList[currentAddButtonIndex].quantity += 1
+          this.setState({foodItemsList}, addNow(event))
         }
 
         const onIncreaseItemCount = event => {
           const incId = event.target.value
-          const currentIncItemIndex = foodItems.findIndex(
+          const currentIncItemIndex = foodItemsList.findIndex(
             item => item.id === incId,
           )
-          foodItems[currentIncItemIndex].quantity += 1
-          restaurantData.foodItems = foodItems
-          this.setState({restaurantData}, addNow(event))
+          foodItemsList[currentIncItemIndex].quantity += 1
+
+          this.setState({foodItemsList}, addNow(event))
         }
 
         const onDecreaseItemCount = event => {
           const DecId = event.target.value
 
-          const currentDecItemIndex = foodItems.findIndex(
+          const currentDecItemIndex = foodItemsList.findIndex(
             item => item.id === DecId,
           )
+          // let newItem = foodItemsList
 
-          if (foodItems[currentItemIndex].quantity === 1) {
-            foodItems[currentDecItemIndex].quantity = 0
-            foodItems[currentItemIndex].showAddButton = true
-          } else if (foodItems[currentDecItemIndex].quantity > 1) {
-            foodItems[currentDecItemIndex].quantity -= 1
+          if (foodItemsList[currentItemIndex].quantity === 1) {
+            foodItemsList[currentDecItemIndex].quantity = 0
+            foodItemsList[currentItemIndex].showAddButton = true
+          } else if (foodItemsList[currentDecItemIndex].quantity > 1) {
+            foodItemsList[currentDecItemIndex].quantity -= 1
+            foodItemsList[currentItemIndex].showAddButton = false
           }
 
-          restaurantData.foodItems = foodItems
-
-          this.setState({restaurantData}, addNow(event))
+          this.setState({foodItemsList}, addNow(event))
         }
 
         return (
@@ -220,21 +221,27 @@ class DetailedRestaurant extends Component {
                 Add
               </button>
             ) : (
-              <div className="pagination-card">
+              <div className="pagination-card-main">
                 <button
+                  testid="decrement-count"
                   type="button"
                   onClick={onDecreaseItemCount}
                   value={id}
-                  testid="decrement-count"
                 >
                   -
                 </button>
-                <p testid="active-count">{quantity}</p>
                 <button
+                  type="button"
+                  testid="active-count"
+                  className="quantity-button"
+                >
+                  {quantity}
+                </button>
+                <button
+                  testid="increment-count"
                   type="button"
                   onClick={onIncreaseItemCount}
                   value={id}
-                  testid="increment-count"
                 >
                   +
                 </button>
@@ -267,27 +274,29 @@ class DetailedRestaurant extends Component {
     if (response.ok) {
       const data = await response.json()
 
-      const formattedData = {
+      const formattedRestaurantData = {
         costForTwo: data.cost_for_two,
         id: data.id,
+        cuisine: data.cuisine,
         imageUrl: data.image_url,
         location: data.location,
         name: data.name,
         rating: data.rating,
         reviewsCount: data.reviews_count,
-
-        foodItems: data.food_items.map(item => ({
-          cost: item.cost,
-          foodType: item.food_type,
-          id: item.id,
-          imageUrl: item.image_url,
-          name: item.name,
-          rating: item.rating,
-          showAddButton: true,
-          quantity: 0,
-        })),
       }
-      const filterRestaurantList = formattedData.foodItems.filter(item =>
+
+      const foodItems = data.food_items.map(item => ({
+        cost: item.cost,
+        foodType: item.food_type,
+        id: item.id,
+        imageUrl: item.image_url,
+        name: item.name,
+        rating: item.rating,
+        showAddButton: true,
+        quantity: 0,
+      }))
+
+      const filterRestaurantList = foodItems.filter(item =>
         item.name.toUpperCase().includes(searchInput.toUpperCase()),
       )
 
@@ -297,27 +306,22 @@ class DetailedRestaurant extends Component {
         filterRestaurantList.sort((a, b) => a.cost - b.cost)
       }
 
-      formattedData.foodItems = filterRestaurantList
-
-      this.onSuccess(formattedData)
+      this.onSuccess(formattedRestaurantData, filterRestaurantList)
     } else {
       this.setState({isLoading: apiStatus.fail})
     }
   }
 
   loaderView = () => (
-    <div className="products-loader-container restaurant-container">
-      <Loader
-        testid="restaurant-details-loader"
-        type="TailSpin"
-        height="50"
-        width="50"
-        className="loader"
-      />
+    <div
+      className="products-loader-container restaurant-container"
+      testid="restaurant-details-loader"
+    >
+      <Loader type="Oval" height="50" width="50" className="loader" />
     </div>
   )
 
-  failureView = () => <h1>Retry</h1>
+  failureView = () => <NotFound />
 
   renderRestaurant = () => {
     const {isLoading} = this.state
